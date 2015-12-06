@@ -2,11 +2,17 @@ package mapper
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 )
 
 func TestCreatePageMap(t *testing.T) {
-	pm, err := CreatePageMap("https://digitalocean.com")
+	url, err := url.Parse("https://digitalocean.com")
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	pm, err := CreatePageMap(url)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -23,12 +29,22 @@ func TestCreatePageMap(t *testing.T) {
 }
 
 func TestAbsoluteURL(t *testing.T) {
-	testURL := func(pageURL, targetURL, expectedURL string) {
+	testURL := func(pageURLStr, targetURLStr, expectedURLStr string) {
+		pageURL, err := url.Parse(pageURLStr)
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		targetURL, err := url.Parse(targetURLStr)
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
 		url, err := getAbsoluteURL(pageURL, targetURL)
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
-		} else if url != expectedURL {
-			t.Errorf("Exepected (%s, %s) to be %s, got %s", pageURL, targetURL, expectedURL, url)
+		} else if url.String() != expectedURLStr {
+			t.Errorf("Exepected (%s, %s) to be %s, got %s", pageURL, targetURL, expectedURLStr, url)
 		}
 	}
 
@@ -39,11 +55,18 @@ func TestAbsoluteURL(t *testing.T) {
 }
 
 func TestIsSameHost(t *testing.T) {
-	testURL := func(pageURL, targetURL string, shouldMatch bool) {
-		isSameHost, err := isSameHost(pageURL, targetURL)
+	testURL := func(pageURLStr, targetURLStr string, shouldMatch bool) {
+		pageURL, err := url.Parse(pageURLStr)
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
-		} else if isSameHost != shouldMatch {
+		}
+
+		targetURL, err := url.Parse(targetURLStr)
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		if isSameHost(pageURL, targetURL) != shouldMatch {
 			t.Errorf("Exepected (%s, %s) to be %t, got %t", pageURL, targetURL, shouldMatch, isSameHost)
 		}
 	}

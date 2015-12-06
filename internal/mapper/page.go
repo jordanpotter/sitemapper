@@ -8,12 +8,13 @@ import (
 )
 
 type PageMap struct {
-	Links  []string
-	Assets []string
+	URL    *url.URL
+	Links  []*url.URL
+	Assets []*url.URL
 }
 
-func CreatePageMap(url string) (*PageMap, error) {
-	resp, err := http.Get(url)
+func CreatePageMap(url *url.URL) (*PageMap, error) {
+	resp, err := http.Get(url.String())
 	if err != nil {
 		return nil, err
 	}
@@ -23,75 +24,70 @@ func CreatePageMap(url string) (*PageMap, error) {
 		return nil, err
 	}
 
-	links := make(map[string]bool)
-	assets := make(map[string]bool)
-	processNode(root, url, links, assets)
-
-	pm := new(PageMap)
-	for url := range links {
-		pm.Links = append(pm.Links, url)
-	}
-	for url := range assets {
-		pm.Assets = append(pm.Assets, url)
-	}
+	pm := &PageMap{URL: url}
+	processNode(pm, root)
+	pm.Links = getUniqueURLs(pm.Links)
+	pm.Assets = getUniqueURLs(pm.Assets)
 	return pm, nil
 }
 
-func processNode(n *html.Node, pageURL string, links, assets map[string]bool) error {
+func processNode(pm *PageMap, n *html.Node) error {
 	if n.Type == html.ElementNode {
-		err := addLinkURL(n, pageURL, links)
+		err := addLinkURL(pm, n)
 		if err != nil {
 			return err
 		}
 
-		err = addAssetURL(n, pageURL, assets)
+		err = addAssetURL(pm, n)
 		if err != nil {
 			return err
 		}
 	}
 
 	for child := n.FirstChild; child != nil; child = child.NextSibling {
-		processNode(child, pageURL, links, assets)
+		processNode(pm, child)
 	}
 	return nil
 }
 
-func addLinkURL(n *html.Node, pageURL string, links map[string]bool) error {
+func addLinkURL(pm *PageMap, n *html.Node) error {
 	if getNodeType(n) != anchorNode {
 		return nil
 	}
 
-	url, err := getNodeAttrValue(n, "href")
+	urlStr, err := getNodeAttrValue(n, "href")
 	if err != nil {
 		return err
 	}
 
-	isSameHost, err := isSameHost(pageURL, url)
+	url, err := url.Parse(urlStr)
 	if err != nil {
 		return err
-	} else if !isSameHost {
+	}
+
+	if !isSameHost(pm.URL, url) {
 		return nil
 	}
 
-	absURL, err := getAbsoluteURL(pageURL, url)
+	absURL, err := getAbsoluteURL(pm.URL, url)
 	if err != nil {
 		return err
 	}
 
-	links[absURL] = true
+	pm.Links = append(pm.Links, absURL)
 	return nil
 }
 
-func addAssetURL(n *html.Node, pageURL string, assets map[string]bool) error {
-	var url string
+func addAssetURL(pm *PageMap, n *html.Node) error {
+	var urlStr string
 	var err error
 	switch getNodeType(n) {
 	case scriptNode, iframeNode, sourceNode, embedNode, imageNode:
-		url, err = getNodeAttrValue(n, "src")
+		urlStr, err = getNodeAttrValue(n, "src")
 	case linkNode:
-		url, err = getNodeAttrValue(n, "href")
+		urlStr, err = getNodeAttrValue(n, "href")
 	case objectNode:
-		url, err = getNodeAttrValue(n, "data")
+		urlStr, err = getNodeAttrValue(n, "data")
 	default:
 		return nil
 	}
@@ -100,45 +96,47 @@ func addAssetURL(n *html.Node, pageURL string, assets map[string]bool) error {
 		return err
 	}
 
-	absURL, err := getAbsoluteURL(pageURL, url)
+	url, err := url.Parse(urlStr)
 	if err != nil {
 		return err
 	}
 
-	assets[absURL] = true
+	absURL, err := getAbsoluteURL(pm.URL, url)
+	if err != nil {
+		return err
+	}
+
+	pm.Assets = append(pm.Assets, absURL)
 	return nil
 }
 
-func getAbsoluteURL(pageURL, targetURL string) (string, error) {
-	parsedPageURL, err := url.Parse(pageURL)
+func getAbsoluteURL(pageURL, targetURL *url.URL) (*url.URL, error) {
+	absURL, err := url.Parse(targetURL.String())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	parsedTargetURL, err := url.Parse(targetURL)
-	if err != nil {
-		return "", err
+	if absURL.Scheme == "" {
+		absURL.Scheme = pageURL.Scheme
 	}
-
-	if parsedTargetURL.Scheme == "" {
-		parsedTargetURL.Scheme = parsedPageURL.Scheme
+	if absURL.Host == "" {
+		absURL.Host = pageURL.Host
 	}
-	if parsedTargetURL.Host == "" {
-		parsedTargetURL.Host = parsedPageURL.Host
-	}
-	return parsedTargetURL.String(), nil
+	return absURL, nil
 }
 
-func isSameHost(pageURL, targetURL string) (bool, error) {
-	parsedPageURL, err := url.Parse(pageURL)
-	if err != nil {
-		return false, err
-	}
+func isSameHost(pageURL, targetURL *url.URL) bool {
+	return targetURL.Host == "" || pageURL.Host == targetURL.Host
+}
 
-	parsedTargetURL, err := url.Parse(targetURL)
-	if err != nil {
-		return false, err
+func getUniqueURLs(urls []*url.URL) []*url.URL {
+	var unique []*url.URL
+	seen := make(map[string]bool)
+	for _, url := range urls {
+		if !seen[url.String()] {
+			seen[url.String()] = true
+			unique = append(unique, url)
+		}
 	}
-
-	return parsedTargetURL.Host == "" || parsedPageURL.Host == parsedTargetURL.Host, nil
+	return unique
 }
