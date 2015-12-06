@@ -3,7 +3,6 @@ package mapper
 import (
 	"net/http"
 	"net/url"
-	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -131,10 +130,6 @@ func getAbsoluteURL(pageURL, targetURL string) (string, error) {
 }
 
 func isSameHost(pageURL, targetURL string) (bool, error) {
-	if strings.HasPrefix(targetURL, "/") {
-		return true, nil
-	}
-
 	parsedPageURL, err := url.Parse(pageURL)
 	if err != nil {
 		return false, err
@@ -145,5 +140,5 @@ func isSameHost(pageURL, targetURL string) (bool, error) {
 		return false, err
 	}
 
-	return parsedPageURL.Host == parsedTargetURL.Host, nil
+	return parsedTargetURL.Host == "" || parsedPageURL.Host == parsedTargetURL.Host, nil
 }
