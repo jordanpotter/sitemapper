@@ -11,5 +11,13 @@ func TestCreatePageMap(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
-	fmt.Println(pageMap)
+	for _, a := range pageMap.Assets {
+		fmt.Println(a)
+	}
+
+	fmt.Println("==========")
+
+	for _, l := range pageMap.Links {
+		fmt.Println(l)
+	}
 }
