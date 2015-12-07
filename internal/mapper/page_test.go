@@ -1,7 +1,6 @@
 package mapper
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 )
@@ -12,19 +11,9 @@ func TestCreatePageMap(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
-	pm, err := CreatePageMap(url)
+	_, err = CreatePageMap(url)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	}
-
-	for _, a := range pm.Assets {
-		fmt.Println(a)
-	}
-
-	fmt.Println("==========")
-
-	for _, l := range pm.Links {
-		fmt.Println(l)
 	}
 }
 

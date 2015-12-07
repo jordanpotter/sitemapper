@@ -13,8 +13,8 @@ type PageMap struct {
 	Assets []*url.URL
 }
 
-func CreatePageMap(url *url.URL) (*PageMap, error) {
-	resp, err := http.Get(url.String())
+func CreatePageMap(u *url.URL) (*PageMap, error) {
+	resp, err := http.Get(u.String())
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func CreatePageMap(url *url.URL) (*PageMap, error) {
 		return nil, err
 	}
 
-	pm := &PageMap{URL: url}
+	pm := &PageMap{URL: u}
 	processNode(pm, root)
 	pm.Links = getUniqueURLs(pm.Links)
 	pm.Assets = getUniqueURLs(pm.Assets)
@@ -55,39 +55,41 @@ func addLinkURL(pm *PageMap, n *html.Node) error {
 		return nil
 	}
 
-	urlStr, err := getNodeAttrValue(n, "href")
+	link, err := getNodeAttrValue(n, "href")
 	if err != nil {
 		return err
 	}
 
-	url, err := url.Parse(urlStr)
+	linkURL, err := url.Parse(link)
 	if err != nil {
 		return err
 	}
 
-	if !isSameHost(pm.URL, url) {
+	if !isValidLink(linkURL) {
+		return nil
+	} else if !isSameHost(pm.URL, linkURL) {
 		return nil
 	}
 
-	absURL, err := getAbsoluteURL(pm.URL, url)
+	linkURL, err = getAbsoluteURL(pm.URL, linkURL)
 	if err != nil {
 		return err
 	}
 
-	pm.Links = append(pm.Links, absURL)
+	pm.Links = append(pm.Links, linkURL)
 	return nil
 }
 
 func addAssetURL(pm *PageMap, n *html.Node) error {
-	var urlStr string
+	var asset string
 	var err error
 	switch getNodeType(n) {
 	case scriptNode, iframeNode, sourceNode, embedNode, imageNode:
-		urlStr, err = getNodeAttrValue(n, "src")
+		asset, err = getNodeAttrValue(n, "src")
 	case linkNode:
-		urlStr, err = getNodeAttrValue(n, "href")
+		asset, err = getNodeAttrValue(n, "href")
 	case objectNode:
-		urlStr, err = getNodeAttrValue(n, "data")
+		asset, err = getNodeAttrValue(n, "data")
 	default:
 		return nil
 	}
@@ -96,17 +98,17 @@ func addAssetURL(pm *PageMap, n *html.Node) error {
 		return err
 	}
 
-	url, err := url.Parse(urlStr)
+	assetURL, err := url.Parse(asset)
 	if err != nil {
 		return err
 	}
 
-	absURL, err := getAbsoluteURL(pm.URL, url)
+	assetURL, err = getAbsoluteURL(pm.URL, assetURL)
 	if err != nil {
 		return err
 	}
 
-	pm.Assets = append(pm.Assets, absURL)
+	pm.Assets = append(pm.Assets, assetURL)
 	return nil
 }
 
@@ -123,6 +125,10 @@ func getAbsoluteURL(pageURL, targetURL *url.URL) (*url.URL, error) {
 		absURL.Host = pageURL.Host
 	}
 	return absURL, nil
+}
+
+func isValidLink(linkURL *url.URL) bool {
+	return linkURL.Scheme == "" || linkURL.Scheme == "http" || linkURL.Scheme == "https"
 }
 
 func isSameHost(pageURL, targetURL *url.URL) bool {
