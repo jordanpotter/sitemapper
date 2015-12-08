@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"log"
 	"net/url"
 	"sync"
 )
@@ -15,6 +16,7 @@ type workerPageResult struct {
 }
 
 func CreateSiteMap(u *url.URL, numWorkers int) (*SiteMap, error) {
+	log.Printf("Creating site map for %s with %d workers...", u, numWorkers)
 	urls := make(chan *url.URL)
 	results := createWorkers(numWorkers, urls)
 	pms, err := processPages(u, urls, results)
@@ -64,6 +66,8 @@ func processPages(initialURL *url.URL, urls chan<- *url.URL, results <-chan *wor
 			wg.Done()
 			continue
 		}
+
+		log.Printf("Processed %s", wr.pm.URL)
 
 		m.Lock()
 		pms = append(pms, wr.pm)
