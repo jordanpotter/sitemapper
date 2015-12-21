@@ -7,7 +7,7 @@ import (
 )
 
 type SiteMap struct {
-	PageMaps []*PageMap
+	PageMaps []*PageMap `json:"pages"`
 }
 
 type workerPageResult struct {
@@ -16,7 +16,7 @@ type workerPageResult struct {
 }
 
 func CreateSiteMap(u *url.URL, numWorkers int) (*SiteMap, error) {
-	log.Printf("Creating site map for %s with %d workers...", u, numWorkers)
+	log.Printf("Creating site map for %q with %d workers...", u, numWorkers)
 	urls := make(chan *url.URL)
 	results := createWorkers(numWorkers, urls)
 	pms, err := processPages(u, urls, results)

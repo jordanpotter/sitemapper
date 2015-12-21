@@ -1,8 +1,10 @@
 package mapper
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -11,6 +13,26 @@ type PageMap struct {
 	URL    *url.URL
 	Links  []*url.URL
 	Assets []*url.URL
+}
+
+func (pm *PageMap) MarshalJSON() ([]byte, error) {
+	urlsToStrings := func(urls []*url.URL) []string {
+		strs := make([]string, 0, len(urls))
+		for _, u := range urls {
+			strs = append(strs, u.String())
+		}
+		return strs
+	}
+
+	return json.Marshal(struct {
+		URL    string   `json:"url"`
+		Links  []string `json:"links"`
+		Assets []string `json:"assets"`
+	}{
+		URL:    pm.URL.String(),
+		Links:  urlsToStrings(pm.Links),
+		Assets: urlsToStrings(pm.Assets),
+	})
 }
 
 func CreatePageMap(u *url.URL) (*PageMap, error) {
@@ -128,7 +150,10 @@ func getAbsoluteURL(pageURL, targetURL *url.URL) (*url.URL, error) {
 }
 
 func isValidLink(linkURL *url.URL) bool {
-	return linkURL.Scheme == "" || linkURL.Scheme == "http" || linkURL.Scheme == "https"
+	validScheme := linkURL.Scheme == "http" || linkURL.Scheme == "https"
+	validExtension := strings.HasSuffix(linkURL.Path, ".html") ||
+		strings.LastIndex(linkURL.Path, ".") <= strings.LastIndex(linkURL.Path, "/")
+	return validScheme && validExtension
 }
 
 func isSameHost(pageURL, targetURL *url.URL) bool {
@@ -138,10 +163,10 @@ func isSameHost(pageURL, targetURL *url.URL) bool {
 func getUniqueURLs(urls []*url.URL) []*url.URL {
 	var unique []*url.URL
 	seen := make(map[string]bool)
-	for _, url := range urls {
-		if !seen[url.String()] {
-			seen[url.String()] = true
-			unique = append(unique, url)
+	for _, u := range urls {
+		if !seen[u.String()] {
+			seen[u.String()] = true
+			unique = append(unique, u)
 		}
 	}
 	return unique

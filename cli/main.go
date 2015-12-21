@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	site := flag.String("site", "https://digitalocean.com", "entry point into site to scan")
+	site := flag.String("site", "", "entry point into site to scan")
 	numWorkers := flag.Int("workers", runtime.NumCPU(), "number of workers")
 	filename := flag.String("file", "sitemap.json", "file to write to")
 	flag.Parse()
