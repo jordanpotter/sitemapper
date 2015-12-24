@@ -22,8 +22,8 @@ func TestGetNodeType(t *testing.T) {
 	testType("source", sourceNode)
 	testType("embed", embedNode)
 	testType("object", objectNode)
-	testType("a", anchorNode)
 	testType("img", imageNode)
+	testType("a", anchorNode)
 	testType("unknown", unknownNode)
 }
 

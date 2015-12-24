@@ -150,7 +150,8 @@ func getAbsoluteURL(pageURL, targetURL *url.URL) (*url.URL, error) {
 }
 
 func isValidLink(linkURL *url.URL) bool {
-	validScheme := linkURL.Scheme == "http" || linkURL.Scheme == "https"
+	validScheme := (linkURL.Scheme == "" && linkURL.Host == "") ||
+		linkURL.Scheme == "http" || linkURL.Scheme == "https"
 	validExtension := strings.HasSuffix(linkURL.Path, ".html") ||
 		strings.LastIndex(linkURL.Path, ".") <= strings.LastIndex(linkURL.Path, "/")
 	return validScheme && validExtension
