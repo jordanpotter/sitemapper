@@ -46,9 +46,9 @@ func createWorkers(num int, urls <-chan *url.URL) <-chan *workerPageResult {
 }
 
 func processPages(initialURL *url.URL, urls chan<- *url.URL, results <-chan *workerPageResult) ([]*PageMap, error) {
-	var wg sync.WaitGroup
 	var pms []*PageMap
 	var m sync.RWMutex
+	var wg sync.WaitGroup
 
 	go func() {
 		urls <- initialURL

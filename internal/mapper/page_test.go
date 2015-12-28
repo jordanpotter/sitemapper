@@ -149,7 +149,7 @@ func TestAddAssetURL(t *testing.T) {
 	}
 }
 
-func TestAbsoluteURL(t *testing.T) {
+func TestGetAbsoluteURL(t *testing.T) {
 	testURL := func(pageURLStr, targetURLStr, expectedURLStr string) {
 		pageURL, err := url.Parse(pageURLStr)
 		if err != nil {
