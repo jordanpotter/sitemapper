@@ -40,6 +40,7 @@ func CreatePageMap(u *url.URL) (*PageMap, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	root, err := html.Parse(resp.Body)
 	if err != nil {
@@ -108,7 +109,7 @@ func addAssetURL(pm *PageMap, n *html.Node) error {
 	switch getNodeType(n) {
 	case scriptNode, iframeNode, sourceNode, embedNode, imageNode:
 		asset, err = getNodeAttrValue(n, "src")
-	case linkNode:
+	case stylesheetNode, icoNode:
 		asset, err = getNodeAttrValue(n, "href")
 	case objectNode:
 		asset, err = getNodeAttrValue(n, "data")

@@ -7,32 +7,64 @@ import (
 )
 
 func TestGetNodeType(t *testing.T) {
-	testType := func(data string, et nodeType) {
-		var n html.Node
-		n.Data = data
+	testType := func(data string, attr []html.Attribute, et nodeType) {
+		n := html.Node{Data: data, Attr: attr}
 		nodeType := getNodeType(&n)
 		if nodeType != et {
 			t.Errorf("Exepected %d, got %d", et, nodeType)
 		}
 	}
 
-	testType("script", scriptNode)
-	testType("link", linkNode)
-	testType("iframe", iframeNode)
-	testType("source", sourceNode)
-	testType("embed", embedNode)
-	testType("object", objectNode)
-	testType("img", imageNode)
-	testType("a", anchorNode)
-	testType("unknown", unknownNode)
+	testType("iframe", []html.Attribute{}, iframeNode)
+	testType("source", []html.Attribute{}, sourceNode)
+	testType("embed", []html.Attribute{}, embedNode)
+	testType("object", []html.Attribute{}, objectNode)
+	testType("img", []html.Attribute{}, imageNode)
+	testType("a", []html.Attribute{}, anchorNode)
+	testType("script", []html.Attribute{}, scriptNode)
+	testType("link", []html.Attribute{
+		html.Attribute{Key: "rel", Val: "stylesheet"},
+	}, stylesheetNode)
+	testType("link", []html.Attribute{
+		html.Attribute{Key: "rel", Val: "icon"},
+	}, icoNode)
+	testType("unknown", []html.Attribute{}, unknownNode)
+}
+
+func TestIsStylesheetNode(t *testing.T) {
+	n := html.Node{Data: "link"}
+	if isStylesheetNode(&n) {
+		t.Errorf("Exepected node to not be a stylesheet node")
+	}
+
+	n.Attr = []html.Attribute{
+		html.Attribute{Key: "rel", Val: "stylesheet"},
+	}
+	if !isStylesheetNode(&n) {
+		t.Errorf("Exepected node to be a stylesheet node")
+	}
+}
+
+func TestIsIcoNode(t *testing.T) {
+	n := html.Node{Data: "link"}
+	if isIcoNode(&n) {
+		t.Errorf("Exepected node to not be a ico node")
+	}
+
+	n.Attr = []html.Attribute{
+		html.Attribute{Key: "rel", Val: "icon"},
+	}
+	if !isIcoNode(&n) {
+		t.Errorf("Exepected node to be a ico node")
+	}
 }
 
 func TestGetNodeAttrValue(t *testing.T) {
 	var n html.Node
 	n.Attr = []html.Attribute{
-		html.Attribute{"", "key1", "value1"},
-		html.Attribute{"", "key2", "value2"},
-		html.Attribute{"", "key3", "value3"},
+		html.Attribute{Key: "key1", Val: "value1"},
+		html.Attribute{Key: "key2", Val: "value2"},
+		html.Attribute{Key: "key3", Val: "value3"},
 	}
 
 	for _, attr := range n.Attr {
@@ -45,7 +77,7 @@ func TestGetNodeAttrValue(t *testing.T) {
 	}
 
 	_, err := getNodeAttrValue(&n, "bad-key")
-	if err != nodeAttrNotFound {
-		t.Errorf("Expected error: %v", nodeAttrNotFound)
+	if err != errNodeAttrNotFound {
+		t.Errorf("Expected error: %v", errNodeAttrNotFound)
 	}
 }

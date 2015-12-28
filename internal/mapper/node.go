@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"errors"
+	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -9,25 +10,22 @@ import (
 type nodeType uint32
 
 const (
-	scriptNode nodeType = iota
-	linkNode
-	iframeNode
+	iframeNode nodeType = iota
 	sourceNode
 	embedNode
 	objectNode
 	imageNode
 	anchorNode
+	scriptNode
+	stylesheetNode
+	icoNode
 	unknownNode
 )
 
-var nodeAttrNotFound error = errors.New("node attribute not found")
+var errNodeAttrNotFound = errors.New("node attribute not found")
 
 func getNodeType(n *html.Node) nodeType {
 	switch n.Data {
-	case "script":
-		return scriptNode
-	case "link":
-		return linkNode
 	case "iframe":
 		return iframeNode
 	case "source":
@@ -40,9 +38,32 @@ func getNodeType(n *html.Node) nodeType {
 		return imageNode
 	case "a":
 		return anchorNode
-	default:
-		return unknownNode
+	case "script":
+		return scriptNode
+	case "link":
+		if isStylesheetNode(n) {
+			return stylesheetNode
+		} else if isIcoNode(n) {
+			return icoNode
+		}
 	}
+	return unknownNode
+}
+
+func isStylesheetNode(n *html.Node) bool {
+	relVal, err := getNodeAttrValue(n, "rel")
+	if err != nil {
+		return false
+	}
+	return strings.ToLower(relVal) == "stylesheet"
+}
+
+func isIcoNode(n *html.Node) bool {
+	relVal, err := getNodeAttrValue(n, "rel")
+	if err != nil {
+		return false
+	}
+	return strings.ToLower(relVal) == "icon"
 }
 
 func getNodeAttrValue(n *html.Node, key string) (string, error) {
@@ -51,5 +72,5 @@ func getNodeAttrValue(n *html.Node, key string) (string, error) {
 			return a.Val, nil
 		}
 	}
-	return "", nodeAttrNotFound
+	return "", errNodeAttrNotFound
 }
