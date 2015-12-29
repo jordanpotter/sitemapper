@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,9 +11,12 @@ import (
 	"github.com/jordanpotter/sitemapper/internal/mapper"
 )
 
+const port = 8000
+
 func main() {
-	http.HandleFunc("/", getSiteMap)
-	http.ListenAndServe(":8000", nil)
+	log.Printf("Starting server on port %d", port)
+	http.HandleFunc("/sitemap", getSiteMap)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
 func getSiteMap(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +58,7 @@ func getSiteMap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	_, err = w.Write(b)
 	if err != nil {
 		log.Println(err)
