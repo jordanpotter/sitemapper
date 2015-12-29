@@ -6,6 +6,13 @@ import (
 	"testing"
 )
 
+func TestCreateSiteMapNumWorkers(t *testing.T) {
+	_, err := CreateSiteMap(nil, 0)
+	if err != errNumWorkersTooLow {
+		t.Errorf("Expected error %v, got %v", errNumWorkersTooLow, err)
+	}
+}
+
 func TestProcessPagesInitialURL(t *testing.T) {
 	u, err := url.Parse("https://foo.com")
 	if err != nil {

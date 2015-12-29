@@ -1,11 +1,14 @@
 package mapper
 
 import (
+	"errors"
 	"log"
 	"net/url"
 	"sync"
 )
 
+// A SiteMap contains page maps for every page in the same domain. A page is
+// considered to be in the same domain if the protocol and host match exactly.
 type SiteMap struct {
 	PageMaps []*PageMap `json:"pages"`
 }
@@ -15,7 +18,16 @@ type workerPageResult struct {
 	err error
 }
 
+var errNumWorkersTooLow = errors.New("num workers must be greater than 0")
+
+// CreateSiteMap returns a complete site map starting from the specified url.
+// The number of workers used to crawl the domain, begining at url u, is
+// determined by numWorkers.
 func CreateSiteMap(u *url.URL, numWorkers int) (*SiteMap, error) {
+	if numWorkers < 1 {
+		return nil, errNumWorkersTooLow
+	}
+
 	log.Printf("Creating site map for %q with %d workers...", u, numWorkers)
 	urls := make(chan *url.URL)
 	results := createWorkers(numWorkers, urls)

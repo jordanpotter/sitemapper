@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/html"
 )
 
+// A PageMap contains all of the links and assets at URL.
 type PageMap struct {
 	URL    *url.URL
 	Links  []*url.URL
@@ -35,6 +36,8 @@ func (pm *PageMap) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// CreatePageMap creates a page map for the specified url. This is done by
+// parsing the HTML for all links and assets found in the DOM tree.
 func CreatePageMap(u *url.URL) (*PageMap, error) {
 	resp, err := http.Get(u.String())
 	if err != nil {
