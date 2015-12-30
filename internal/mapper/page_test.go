@@ -175,6 +175,32 @@ func TestGetAbsoluteURL(t *testing.T) {
 	testURL("https://foo.com", "http://bar.com/path/to/asset.png", "http://bar.com/path/to/asset.png")
 }
 
+func TestGetHashlessURL(t *testing.T) {
+	testURL := func(urlStr, expectedStr string) {
+		u, err := url.Parse(urlStr)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		hashless, err := getHashlessURL(u)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		if hashless.String() != expectedStr {
+			t.Errorf("Exepected hashless url to be %q, got %q", expectedStr, hashless.String())
+		}
+	}
+
+	testURL("https://foo.com", "https://foo.com")
+	testURL("https://foo.com#hash", "https://foo.com")
+	testURL("https://foo.com/#hash", "https://foo.com/")
+
+	testURL("https://foo.com/some/path", "https://foo.com/some/path")
+	testURL("https://foo.com/some/path#hash", "https://foo.com/some/path")
+	testURL("https://foo.com/some/path/#hash", "https://foo.com/some/path/")
+}
+
 func TestIsValidLink(t *testing.T) {
 	testURL := func(urlStr string, shouldBeValid bool) {
 		u, err := url.Parse(urlStr)

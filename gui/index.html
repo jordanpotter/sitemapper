@@ -18,7 +18,7 @@
                 position: relative;
                 margin-top: 10px;
                 width: 1200px;
-                height: 800px;
+                height: 1000px;
                 border: 1px solid #dedede;
             }
 
@@ -26,6 +26,7 @@
                 display: inline-block;
                 margin-top: 10px;
                 width: 1200px;
+                min-height: 50px;
                 font-size: 18px;
                 text-align: center;
             }
@@ -64,7 +65,7 @@
         <script>
             "use strict"
 
-            const maxNodes = 500;
+            const maxNodes = 1000;
 
             function setBusy(busy) {
                 $('#graph-container').empty();
@@ -120,23 +121,23 @@
                 const urlToNodeIndex = {};
 
                 siteMap.pages.forEach(function(pageMap) {
-                    if (nodes.length > maxNodes) { return; }
+                    if (nodes.length >= maxNodes) { return; }
                     urlToNodeIndex[pageMap.url] = urlToNodeIndex[pageMap.url] || nodes.push({ url: pageMap.url, type: 'page' }) - 1;
 
                     pageMap.links.forEach(function(linkURL) {
-                        if (nodes.length > maxNodes) { return; }
+                        if (nodes.length >= maxNodes) { return; }
                         urlToNodeIndex[linkURL] = urlToNodeIndex[linkURL] || nodes.push({ url: linkURL, type: 'page' }) - 1;
                         edges.push({ source: urlToNodeIndex[pageMap.url], target: urlToNodeIndex[linkURL] });
                     });
 
                     pageMap.assets.forEach(function(assetURL) {
-                        if (nodes.length > maxNodes) { return; }
+                        if (nodes.length >= maxNodes) { return; }
                         urlToNodeIndex[assetURL] = urlToNodeIndex[assetURL] || nodes.push({ url: assetURL, type: 'asset' }) - 1;
                         edges.push({ source: urlToNodeIndex[pageMap.url], target: urlToNodeIndex[assetURL] });
                     });
                 });
 
-                if (nodes.length === maxNodes) {
+                if (nodes.length >= maxNodes) {
                     console.error('Maximum nodes reached');
                 }
 
@@ -154,6 +155,7 @@
                 const force = d3.layout.force()
                     .charge(-350)
                     .linkDistance(50)
+                    .gravity(0.5)
                     .size([width, height]);
 
                 $('#graph-container').empty();

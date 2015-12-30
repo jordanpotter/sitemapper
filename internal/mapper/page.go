@@ -91,6 +91,11 @@ func addLinkURL(pm *PageMap, n *html.Node) error {
 		return err
 	}
 
+	linkURL, err = getHashlessURL(linkURL)
+	if err != nil {
+		return err
+	}
+
 	if !isValidLink(linkURL) {
 		return nil
 	} else if !isSameHost(pm.URL, linkURL) {
@@ -151,6 +156,14 @@ func getAbsoluteURL(pageURL, targetURL *url.URL) (*url.URL, error) {
 		absURL.Host = pageURL.Host
 	}
 	return absURL, nil
+}
+
+func getHashlessURL(u *url.URL) (*url.URL, error) {
+	hashIndex := strings.Index(u.String(), "#")
+	if hashIndex >= 0 {
+		return url.Parse(u.String()[0:hashIndex])
+	}
+	return url.Parse(u.String())
 }
 
 func isValidLink(linkURL *url.URL) bool {
