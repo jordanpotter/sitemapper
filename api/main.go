@@ -20,6 +20,8 @@ func main() {
 }
 
 func getSiteMap(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	_, siteProvided := r.URL.Query()["site"]
 	if !siteProvided {
 		http.Error(w, "Missing query parameter \"site\"", 412)
@@ -58,7 +60,6 @@ func getSiteMap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	_, err = w.Write(b)
 	if err != nil {
 		log.Println(err)
