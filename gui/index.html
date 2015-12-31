@@ -122,17 +122,20 @@
 
                 siteMap.pages.forEach(function(pageMap) {
                     if (nodes.length >= maxNodes) { return; }
-                    urlToNodeIndex[pageMap.url] = urlToNodeIndex[pageMap.url] || nodes.push({ url: pageMap.url, type: 'page' }) - 1;
+                    urlToNodeIndex[pageMap.url] = pageMap.url in urlToNodeIndex ?
+                        urlToNodeIndex[pageMap.url] : nodes.push({ url: pageMap.url, type: 'page' }) - 1;
 
                     pageMap.links.forEach(function(linkURL) {
                         if (nodes.length >= maxNodes) { return; }
-                        urlToNodeIndex[linkURL] = urlToNodeIndex[linkURL] || nodes.push({ url: linkURL, type: 'page' }) - 1;
+                        urlToNodeIndex[linkURL] = linkURL in urlToNodeIndex ?
+                            urlToNodeIndex[linkURL] : nodes.push({ url: linkURL, type: 'page' }) - 1;
                         edges.push({ source: urlToNodeIndex[pageMap.url], target: urlToNodeIndex[linkURL] });
                     });
 
                     pageMap.assets.forEach(function(assetURL) {
                         if (nodes.length >= maxNodes) { return; }
-                        urlToNodeIndex[assetURL] = urlToNodeIndex[assetURL] || nodes.push({ url: assetURL, type: 'asset' }) - 1;
+                        urlToNodeIndex[assetURL] = assetURL in urlToNodeIndex ?
+                            urlToNodeIndex[assetURL] : nodes.push({ url: assetURL, type: 'asset' }) - 1;
                         edges.push({ source: urlToNodeIndex[pageMap.url], target: urlToNodeIndex[assetURL] });
                     });
                 });
