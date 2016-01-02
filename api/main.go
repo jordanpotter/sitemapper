@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,17 +12,18 @@ import (
 	"github.com/jordanpotter/sitemapper/internal/mapper"
 )
 
-const port = 8000
-
 func main() {
-	log.Printf("Starting server on port %d", port)
+	port := flag.Int("port", 8000, "port to serve the API")
+	staticPath := flag.String("static", "gui", "path to static files to serve")
+	flag.Parse()
+
+	log.Printf("Starting server on port %d", *port)
 	http.HandleFunc("/sitemap", getSiteMap)
-	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	http.Handle("/", http.FileServer(http.Dir(*staticPath)))
+	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 }
 
 func getSiteMap(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	_, siteProvided := r.URL.Query()["site"]
 	if !siteProvided {
 		http.Error(w, "Missing query parameter \"site\"", 412)
