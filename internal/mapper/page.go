@@ -98,8 +98,6 @@ func addLinkURL(pm *PageMap, n *html.Node) error {
 
 	if !isValidLink(linkURL) {
 		return nil
-	} else if !isSameHost(pm.URL, linkURL) {
-		return nil
 	}
 
 	linkURL, err = getAbsoluteURL(pm.URL, linkURL)
@@ -172,10 +170,6 @@ func isValidLink(linkURL *url.URL) bool {
 	validExtension := strings.HasSuffix(linkURL.Path, ".html") ||
 		strings.LastIndex(linkURL.Path, ".") <= strings.LastIndex(linkURL.Path, "/")
 	return validScheme && validExtension
-}
-
-func isSameHost(pageURL, targetURL *url.URL) bool {
-	return targetURL.Host == "" || pageURL.Host == targetURL.Host
 }
 
 func getUniqueURLs(urls []*url.URL) []*url.URL {

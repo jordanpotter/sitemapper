@@ -88,7 +88,9 @@ func processPages(initialURL *url.URL, urls chan<- *url.URL, results <-chan *wor
 		wg.Add(len(wr.pm.Links) - 1)
 		go func(links []*url.URL) {
 			for _, link := range links {
-				if hasVisitedPage(pms, &m, link) {
+				if !isSameDomain(initialURL, link) {
+					wg.Done()
+				} else if hasVisitedPage(pms, &m, link) {
 					wg.Done()
 				} else {
 					urls <- link
@@ -97,6 +99,11 @@ func processPages(initialURL *url.URL, urls chan<- *url.URL, results <-chan *wor
 		}(wr.pm.Links)
 	}
 	return pms, nil
+}
+
+func isSameDomain(initialURL, targetURL *url.URL) bool {
+	return initialURL.Scheme == targetURL.Scheme &&
+		initialURL.Host == targetURL.Host
 }
 
 func hasVisitedPage(pms []*PageMap, m *sync.RWMutex, u *url.URL) bool {
