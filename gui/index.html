@@ -124,6 +124,7 @@
                     if (nodes.length >= maxNodes) { return; }
                     urlToNodeIndex[pageMap.url] = pageMap.url in urlToNodeIndex ?
                         urlToNodeIndex[pageMap.url] : nodes.push({ url: pageMap.url, type: 'page' }) - 1;
+                    nodes[urlToNodeIndex[pageMap.url]].pageInDomain = true;
 
                     pageMap.links.forEach(function(linkURL) {
                         if (nodes.length >= maxNodes) { return; }
@@ -148,7 +149,11 @@
             }
 
             function getNodeColor(node) {
-                return node.type === 'page' ? '#16517a' : '#1f77b4';
+                if (node.type === 'page') {
+                    return node.pageInDomain ? '#16517a' : '6e8696';
+                } else {
+                    return '#1f77b4';
+                }
             }
 
             function displaySiteMap(siteMap) {

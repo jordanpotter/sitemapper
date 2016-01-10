@@ -40,6 +40,6 @@ When running the API server, additionally specify the path to the static `gui` d
 
 With the API server running, visit `http://localhost:8000` in your preferred browser. After filling out the form to specify the initial URL and number of workers, the site map will be displayed as an interactive graph.
 
-Dark blue nodes represent web pages while light blue nodes represent assets (such as images and javascript libraries). Hovering over a node displays the URL for that node.
+Dark blue nodes represent web pages that belong to the domain, while gray nodes represent pages outside the domain. Light blue nodes are assets, such as images and javascript libraries. Hovering over a node displays the URL for that node.
 
 ![site map example](http://i.imgur.com/rQbMVyb.png)
