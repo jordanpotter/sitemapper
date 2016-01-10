@@ -76,6 +76,37 @@ func TestProcessPagesAddURLs(t *testing.T) {
 	}
 }
 
+func TestIsSameDomain(t *testing.T) {
+	testURL := func(pageURLStr, targetURLStr string, shouldBeSame bool) {
+		pageURL, err := url.Parse(pageURLStr)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		targetURL, err := url.Parse(targetURLStr)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		isSameDomain := isSameDomain(pageURL, targetURL)
+		if isSameDomain != shouldBeSame {
+			t.Errorf("Exepected (%s, %s) to be %t, got %t", pageURL, targetURL, shouldBeSame, isSameDomain)
+		}
+	}
+
+	testURL("https://foo.com", "https://foo.com", true)
+	testURL("https://foo.com", "https://foo.com/", true)
+	testURL("https://foo.com", "https://foo.com/path/to/asset.png", true)
+	testURL("https://foo.com/path/to/asset/1.png", "https://foo.com/path/to/asset/2.png", true)
+
+	testURL("https://foo.com", "http://foo.com", false)
+	testURL("https://foo.com", "https://bar.com", false)
+	testURL("https://foo.com", "http://bar.com", false)
+	testURL("https://foo.com", "//bar.com", false)
+	testURL("https://foo.com", "https://bar.com/path/to/asset.png", false)
+	testURL("https://foo.com/path/to/asset/1.png", "https://bar.com/path/to/asset/2.png", false)
+}
+
 func TestHasVisitedPage(t *testing.T) {
 	testURL := func(pageURLs []string, target string, shouldBeVisited bool) {
 		var pms []*PageMap
