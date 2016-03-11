@@ -12,9 +12,9 @@ A CLI is provided to create a site map easily from the command line. Assuming th
 
 	cli --site INITIAL_URL --workers NUM_WORKERS --file OUTPUT_FILE
 
-As an example, to produce a site map for `digitalocean.com` using `100` workers and save it to `sitemap.json`
+As an example, to produce a site map for `foo.com` using `100` workers and save it to `sitemap.json`
 
-	cli --site https://digitalocean.com --workers 100 --file sitemap.json
+	cli --site https://foo.com --workers 100 --file sitemap.json
 
 ## API
 A REST API has also been provided. Assuming this package has been installed via `go install`
@@ -29,11 +29,11 @@ With the server running, site maps are created via a simple `GET` request
 
 	GET http://localhost:8000/sitemap?site=INITIAL_URL&workers=NUM_WORKERS
 
-As an example, to produce a site map for `digitalocean.com` using `100` workers
+As an example, to produce a site map for `foo.com` using `100` workers
 
-	GET http://localhost:8000/sitemap?site=https://digitalocean.com&workers=100
+	GET http://localhost:8000/sitemap?site=https://foo.com&workers=100
 
-## Extension - GUI
+## Prototype - GUI
 When running the API server, additionally specify the path to the static `gui` directory of this repository. For example
 
 	api --port 8000 --static sitemapper/gui
